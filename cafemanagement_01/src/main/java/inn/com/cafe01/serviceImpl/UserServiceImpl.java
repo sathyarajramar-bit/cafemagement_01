@@ -154,8 +154,7 @@ public class UserServiceImpl implements UserService {
 		if(status !=null && status.equalsIgnoreCase("true")){
 			emailUtils.sendSimpleMessage(jwtFilter.getCurrentUser(), "Account Approved ", "User :-"+user+"\n is approved by\n ADMIN :-"+jwtFilter.getCurrentUser(),allAdmin);
 	}else {
-		
-		emailUtils.sendSimpleMessage(jwtFilter.getCurrentUser(), "Account disable ", "User :-"+user+"\n is disable by\n ADMIN :-"+jwtFilter.getCurrentUser(),allAdmin);
+	     	emailUtils.sendSimpleMessage(jwtFilter.getCurrentUser(), "Account disable ", "User :-"+user+"\n is disable by\n ADMIN :-"+jwtFilter.getCurrentUser(),allAdmin);
 	}
 	}
 
@@ -174,7 +173,7 @@ public class UserServiceImpl implements UserService {
 					userRepository.save(userObj);
 					return CafeUtils.getResponseEntity("Password Updated successfully",HttpStatus.OK);
 				}
-				return CafeUtils.getResponseEntity("INcorrect Old Password",HttpStatus.BAD_REQUEST);
+				return CafeUtils.getResponseEntity("Incorrect Old Password",HttpStatus.BAD_REQUEST);
 			     }	
 			return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG,HttpStatus.INTERNAL_SERVER_ERROR);
 		}catch(Exception ex) {
@@ -188,7 +187,7 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public ResponseEntity<String> forgotPassword(Map<String, String> requestMap) {
-		// TODO Auto-generated method stub
+
 		return null;
 	}
 }
