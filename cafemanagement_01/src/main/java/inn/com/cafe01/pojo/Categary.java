@@ -15,7 +15,7 @@ import org.hibernate.annotations.DynamicUpdate;
 
 import lombok.Data;
 
-@NamedQuery(name="Categary.getAllCategary",query="select c from Categary c")
+@NamedQuery(name="Categary.getAllCategary",query="select c from Categary c where c.id in(select p.categary from Product p where p.status='true')")
 
 @Data
 @Entity
