@@ -15,7 +15,9 @@ import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 import lombok.Data;
 
-@NamedQuery(name="Product.getAllProduct",query="select new inn.com.cafe01.wrapper.ProductWrapper(p.id,p.name,p.description,p.price,p.status,p.categary.id,p.categary.name) from Product p ")
+@NamedQuery(name="Product.getAllProduct",query="select new inn.com.cafe01.wrapper.ProductWrapper(p.id,p.name,p.description,p.price,p.status,p.categary.id,p.categary.name) from Product p")
+
+///@NamedQuery(name="UpdateProductDao" ,query="")
 
 @Data
 @Entity

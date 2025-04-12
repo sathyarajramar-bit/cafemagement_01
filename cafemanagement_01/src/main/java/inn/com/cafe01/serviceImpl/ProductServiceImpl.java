@@ -113,4 +113,44 @@ public class ProductServiceImpl implements ProductService {
 		}
 		return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG,HttpStatus.INTERNAL_SERVER_ERROR);
 	}
+
+	@Override
+	public ResponseEntity<String> deleteProduct(Integer id) {
+		try {
+			if(jwtFilter.isAdmin()) {
+			Optional optional=productRepository.findById(id);
+			if(!optional.isEmpty()) {
+				productRepository.deleteById(id);
+				return CafeUtils.getResponseEntity("Product Deleted successfully ",HttpStatus.OK);
+			}else {
+				return CafeUtils.getResponseEntity("Product id does exits ",HttpStatus.OK);
+			}				
+			}else {
+				return CafeUtils.getResponseEntity(CafeConstants.UNAUTHORIZED_ACCESS,HttpStatus.UNAUTHORIZED);	
+			}		
+		}catch(Exception ex) {
+			ex.printStackTrace();
+		}
+		return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG,HttpStatus.INTERNAL_SERVER_ERROR);
+	}
+
+	@Override
+	public ResponseEntity<String> updateStatus(Map<String, String> requestMap) {
+		try {
+			if(jwtFilter.isAdmin()) {
+				Optional optional=productRepository.findById(Integer.parseInt(requestMap.get("id")));
+				if(!optional.isEmpty()) {
+					productRepository.UpdateProductDao(requestMap.get("status"),Integer.parseInt(requestMap.get("id")));
+					return CafeUtils.getResponseEntity("Product status successfully ",HttpStatus.OK);
+				}else {
+					return CafeUtils.getResponseEntity("Product id does exits ",HttpStatus.OK);	
+				}
+			}else {
+				return CafeUtils.getResponseEntity(CafeConstants.UNAUTHORIZED_ACCESS,HttpStatus.UNAUTHORIZED);	
+			}			
+		}catch(Exception ex) {
+			ex.printStackTrace();
+		}
+		return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG,HttpStatus.INTERNAL_SERVER_ERROR);
+	}
       }
