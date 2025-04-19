@@ -17,7 +17,11 @@ import lombok.Data;
 
 @NamedQuery(name="Product.getAllProduct",query="select new inn.com.cafe01.wrapper.ProductWrapper(p.id,p.name,p.description,p.price,p.status,p.categary.id,p.categary.name) from Product p")
 
-///@NamedQuery(name="UpdateProductDao" ,query="")
+@NamedQuery(name="Product.UpdateProductDao" ,query="update Product p set p.status=:status where p.id=:id")
+
+@NamedQuery(name="Product.getAProductByCategary", query=" select new inn.com.cafe01.wrapper.ProductWrapper(p.id,p.name) from Product p where p.categary.id=:id and p.status='true'")
+
+@NamedQuery(name="Product.getProductById",query="select new inn.com.cafe01.wrapper.ProductWrapper(p.id,p.name,p.description,p.price) from Product p where p.id=:id")
 
 @Data
 @Entity

@@ -75,4 +75,27 @@ public class ProductRestImpl implements ProductRest{
 		}
 		return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG,HttpStatus.INTERNAL_SERVER_ERROR);
 	}
-}
+
+	@Override
+	public ResponseEntity<List<ProductWrapper>> getByCategary(Integer id) {
+		try {			
+			return productService.getByCategary(id);
+		}catch(Exception ex) {
+			ex.printStackTrace();
+		}
+		return new ResponseEntity<>(new ArrayList<>(),HttpStatus.INTERNAL_SERVER_ERROR);
+	}
+
+	@Override
+	public ResponseEntity<ProductWrapper> getProductById(Integer id) {
+		// TODO Auto-generated method stub
+		  try {			
+				return productService.getProductById(id);
+			}catch(Exception ex) {
+				ex.printStackTrace();
+			}
+			return new ResponseEntity<>(new ProductWrapper(),HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+
+	}
+

@@ -25,10 +25,16 @@ public interface ProductRest {
 	@PostMapping(path="/update")
 	ResponseEntity<String> updateProduct(@RequestBody Map<String,String> requestMap);
 
-	@PostMapping(path="/dalete/{id}")
+	@PostMapping(path="/delete/{id}")
 	ResponseEntity<String> deleteProduct(@PathVariable Integer id);
 	
 	@PostMapping(path="/updateStatus")
 	ResponseEntity<String> updateStatus(@RequestBody Map<String,String>  requestMap);
 
+	@GetMapping(path="/getByCategary/{id}")
+	ResponseEntity<List<ProductWrapper>> getByCategary(@PathVariable Integer id);
+	
+	@GetMapping(path="/getById/{id}")
+	ResponseEntity<ProductWrapper> getProductById(@PathVariable Integer id);
+	
 }
