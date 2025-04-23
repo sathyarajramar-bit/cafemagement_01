@@ -1,5 +1,8 @@
 package inn.com.cafe01.utils;
 
+import java.text.DateFormat;
+import java.util.Date;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -11,6 +14,12 @@ public class CafeUtils {
 	
 	public static ResponseEntity<String> getResponseEntity(String responseMessage,HttpStatus httpStatus){
 		return new ResponseEntity<String>("{\"message\":\""+responseMessage+"\"}",httpStatus);
+	}
+	
+	public static String getUUID() {
+		Date date=new Date();
+		long time=date.getTime();
+		return "BILL-" +time;
 	}
 
 }
