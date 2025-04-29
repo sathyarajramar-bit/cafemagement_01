@@ -1,13 +1,34 @@
 package inn.com.cafe01.serviceImpl;
 
+import java.io.FileOutputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
+import org.json.JSONArray;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import com.itextpdf.text.BaseColor;
+import com.itextpdf.text.Document;
+import com.itextpdf.text.DocumentException;
+import com.itextpdf.text.Element;
+import com.itextpdf.text.Font;
+import com.itextpdf.text.FontFactory;
+import com.itextpdf.text.Paragraph;
+import com.itextpdf.text.Phrase;
+import com.itextpdf.text.Rectangle;
+import com.itextpdf.text.pdf.PdfPCell;
+import com.itextpdf.text.pdf.PdfPTable;
+import com.itextpdf.text.pdf.PdfWriter;
+
 import inn.com.cafe01.constants.CafeConstants;
+import inn.com.cafe01.jwt.JwtFilter;
 import inn.com.cafe01.pojo.Bill;
+import inn.com.cafe01.repository.BillRepository;
 import inn.com.cafe01.service.BillService;
 import inn.com.cafe01.utils.CafeUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -15,7 +36,13 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @Slf4j
 public class BillServiceImpl implements BillService {
-
+	
+	@Autowired
+	JwtFilter jwtFilter;
+	
+	@Autowired
+	BillRepository billRepository;
+	
 	@Override
 	public ResponseEntity<String> generateReport(Map<String, Object> requestMap) {
 		try {
@@ -28,6 +55,33 @@ public class BillServiceImpl implements BillService {
 					requestMap.put("uuid", fileName);
 					insertBill(requestMap);
 				}
+				String data="Name: "+requestMap.get("name")+"\n"+"Contact Number: "+requestMap.get("contactNumber")+"\n"+"Email : "+requestMap.get("email")+"\n"+"Payment Merthod: "+requestMap.get("paymentMethod");
+				
+				Document document=new Document();
+				PdfWriter.getInstance(document, new FileOutputStream(CafeConstants.STORE_LOCATION+"\\"+fileName+".pdf"));
+				document.open();
+				setRectanglePdf(document);
+				Paragraph chunk=new Paragraph("Cafe Management System ",getFont("Header"));
+				chunk.setAlignment(Element.ALIGN_CENTER);				
+				document.add(chunk);
+				
+				Paragraph paragraph=new Paragraph(data+ "\n \n ",getFont("Data"));
+				document.add(paragraph);
+				
+				PdfPTable table= new PdfPTable(5);
+				table.setWidthPercentage(100);
+				addTableHeader(table);
+				JSONArray jsonArray=CafeUtils.getJsonArrayFromString((String)requestMap.get("productDetails"));
+				
+				for(int i=0;i<jsonArray.length();i++) {
+					addRows(table,CafeUtils.getMapFromJson(jsonArray.getString(i)));
+				}
+				document.add(table);
+				Paragraph footer=new Paragraph("Total  :"+requestMap.get("totalAmount")+"\n"
+						+"Thank you for visiting.Please visit again!!",getFont("Data"));
+				document.add(footer);
+				document.close();
+				return new ResponseEntity<>("{\"uuid\":\""+fileName+"\"}",HttpStatus.OK);
 			} else {
 				return CafeUtils.getResponseEntity("Required Data not found", HttpStatus.BAD_REQUEST);
 			}
@@ -37,18 +91,56 @@ public class BillServiceImpl implements BillService {
 		}
 		return CafeUtils.getResponseEntity(CafeConstants.SOMETHING_WENT_WRONG, HttpStatus.INTERNAL_SERVER_ERROR);
 	}
-
+	private void addRows(PdfPTable table, Map<String, Object> data) {
+		log.info("inside the rows");
+		table.addCell((String) data.get("name"));
+		table.addCell((String) data.get("categary"));
+		table.addCell((String) data.get("quantity"));
+		table.addCell(Double.toString((Double) data.get("price")));
+		table.addCell(Double.toString((Double) data.get("total")));
+	}
+	private void addTableHeader(PdfPTable table) {
+		log.info("inside addTableHeader");
+		Stream.of("Name","Categary","Quantity","Price","Sub Total").forEach(columnTitle->{
+		PdfPCell header=new PdfPCell();
+		header.setBackgroundColor(BaseColor.YELLOW);
+		header.setBorderWidth(2);
+		header.setPhrase(new Phrase(columnTitle));
+		header.setBackgroundColor(BaseColor.YELLOW);
+		header.setHorizontalAlignment(Element.ALIGN_CENTER);
+		header.setVerticalAlignment(Element.ALIGN_CENTER);
+		table.addCell(header);
+		});
+		
+	}
+	private Font getFont(String type) {
+		log.info("get Font");
+		switch(type) {
+		case "Header":
+		Font headerFont=FontFactory.getFont(FontFactory.HELVETICA_BOLDOBLIQUE,18,BaseColor.BLACK);
+		headerFont.setStyle(Font.BOLD);
+		return headerFont;
+		
+		case "Data":
+			Font dataFont=FontFactory.getFont(FontFactory.TIMES_ROMAN,11,BaseColor.BLACK);			
+			dataFont.setStyle(Font.BOLD);
+			return dataFont;
+	   default:
+		   return new Font(); 
+		}		
+	}
 	private void insertBill(Map<String, Object> requestMap) {
 		try {
 			Bill bill = new Bill();
 			bill.setUuid((String) requestMap.get("uuid"));
 			bill.setName((String)requestMap.get("name"));
-			bill.setName((String)requestMap.get("name"));
-			bill.setName((String)requestMap.get("name"));
-			bill.setName((String)requestMap.get("name"));
-			bill.setName((String)requestMap.get("name"));
-			
-			
+			bill.setEmail((String)requestMap.get("email"));
+			bill.setContactNumber((String)requestMap.get("contactNumber"));
+			bill.setPaymentMethod((String)requestMap.get("paymentMethod"));
+			bill.setTotal(Integer.parseInt((String)requestMap.get("totalAmount")));
+			bill.setProductDetail((String)requestMap.get("productDetails"));
+			bill.setCreatedBy(jwtFilter.getCurrentUser());	
+			billRepository.save(bill);
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
@@ -58,6 +150,43 @@ public class BillServiceImpl implements BillService {
 		return requestMap.containsKey("name") && requestMap.containsKey("contactNumber")
 				&& requestMap.containsKey("email") && requestMap.containsKey("paymentMethod")
 				&& requestMap.containsKey("productDetails") && requestMap.containsKey("totalAmount");
+	}
+	
+	private void setRectanglePdf(Document document) throws DocumentException{
+		log.info("inside the setRectanglePdf");
+		Rectangle rect=new Rectangle(577, 825, 18, 15);
+		rect.enableBorderSide(1);
+		rect.enableBorderSide(2);
+		rect.enableBorderSide(4);
+		rect.enableBorderSide(8);
+		
+		rect.setBorderColor(BaseColor.BLACK);
+		rect.setBorderWidth(1);
+		document.add(rect);
+	}
+	@Override
+	public ResponseEntity<List<Bill>> getBills() {
+		List<Bill> list=new ArrayList<>();
+		if(jwtFilter.isAdmin()) {
+			list=billRepository.getAllBills();
+		}else {
+			list=billRepository.getBillByName(jwtFilter.getCurrentUser());
+		}
+		
+		return new ResponseEntity<>(list, HttpStatus.OK);
+	}
+	@Override
+	public ResponseEntity<byte[]> getPdf(Map<String, Object> requestMap) {
+		log.info("inside getpdf : request{}",requestMap);
+		try {
+			byte[] byteArray=new byte[0];
+			if(!requestMap.containsKey("uuid") && validateRequestMap(requestMap)) 
+				return new ResponseEntity<>(byteArray,HttpStatus.OK);
+			String filePath=CafeConstants.STORE_LOCATION+"\\"+(String) requestMap.get("uuid")+".pdf";
+		}catch(Exception ex) {
+			
+		}
+		return null;
 	}
 
 }
